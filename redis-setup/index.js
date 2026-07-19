@@ -1,10 +1,8 @@
 import express from "express"
 import Redis from "ioredis"
-import mongoose, { mongo } from 'mongoose'
+import mongoose from 'mongoose'
 
 const app = express()
-
-
 
 
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
@@ -32,16 +30,20 @@ app.get('/mongo', async(req,res) => {
         })
     }
 })
-
+app.use(express.json());
 app.post("/banner", async(req,res)=> {
     try {
-        await redis.set(BANNER_KEY, req.body.message || "welcome to website");
-        res.json({success : true});
+        console.log("===== POST HIT =====");
+        console.log("Headers:", req.headers);
+        console.log("Body:", req.body);
+        await redis.set(BANNER_KEY, req.body?.message || "welcome to website");
+        res.json({ headers: req.headers,
+            body: req.body});
     } catch (error) {
-        res.json({error : error.message})
+        res.status(500).json({error : "error"})
     }
 })
-app.use(express.json());
+
 app.get("/banner", async (req,res) => {
     const message = await redis.get(BANNER_KEY);
     res.json({message});
@@ -57,6 +59,6 @@ app.get("/banner/exists", async(req, res) => {
     res.json({ exists: Boolean(exists)})
 })
 
-app.listen(3000, () => {
-    console.log('server running on port 3000')
+app.listen(4000, () => {
+    console.log('server running on port 4000')
 })
